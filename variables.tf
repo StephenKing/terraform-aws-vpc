@@ -49,6 +49,18 @@ variable "intra_subnet_ipv6_prefixes" {
   type        = "list"
 }
 
+variable "elasticache_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  default     = []
+  type        = "list"
+}
+
+variable "redshift_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  default     = []
+  type        = "list"
+}
+
 variable "assign_ipv6_address_on_creation" {
   description = "Assign IPv6 address on subnet, must be disabled to change IPv6 CIDRs. This is the IPv6 equivalent of map_public_ip_on_launch"
   default     = false

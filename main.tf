@@ -370,6 +370,7 @@ resource "aws_subnet" "redshift" {
   vpc_id            = local.vpc_id
   cidr_block        = var.redshift_subnets[count.index]
   availability_zone = element(var.azs, count.index)
+  ipv6_cidr_block   = var.enable_ipv6 && length(var.redshift_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(concat(var.redshift_subnet_ipv6_prefixes, list("0")), count.index)) : null
 
   tags = merge(
     {
@@ -409,6 +410,7 @@ resource "aws_subnet" "elasticache" {
   vpc_id            = local.vpc_id
   cidr_block        = var.elasticache_subnets[count.index]
   availability_zone = element(var.azs, count.index)
+  ipv6_cidr_block   = var.enable_ipv6 && length(var.elasticache_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(concat(var.elasticache_subnet_ipv6_prefixes, list("0")), count.index)) : null
 
   tags = merge(
     {
