@@ -304,7 +304,7 @@ resource "aws_subnet" "private" {
   availability_zone               = element(var.azs, count.index)
   assign_ipv6_address_on_creation = var.assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.private_subnet_ipv6_prefixes) > 0  ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(coalescelist(var.private_subnet_ipv6_prefixes, list("0")), count.index)) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.private_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(coalescelist(var.private_subnet_ipv6_prefixes, list("0")), count.index)) : null
 
   tags = merge(
     {

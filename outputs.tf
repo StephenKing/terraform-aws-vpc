@@ -647,6 +647,7 @@ output "database_subnets_ipv6_cidr_blocks" {
 output "intra_subnets_ipv6_cidr_blocks" {
   description = "List of IPv6 cidr_blocks of intra subnets in an IPv6 enabled VPC"
   value       = aws_subnet.intra.*.ipv6_cidr_block
+}
 
 output "name" {
   description = "The name of the VPC specified as argument to this module"
