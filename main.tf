@@ -304,7 +304,7 @@ resource "aws_subnet" "private" {
   availability_zone               = element(var.azs, count.index)
   assign_ipv6_address_on_creation = var.assign_ipv6_address_on_creation
 
-  ipv6_cidr_block = var.enable_ipv6 && length(var.private_subnet_ipv6_prefixes) > 0  ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(coalescelist(var.private_subnet_ipv6_prefixes, list("0")), count.index)) : null
+  ipv6_cidr_block = var.enable_ipv6 && length(var.private_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(coalescelist(var.private_subnet_ipv6_prefixes, list("0")), count.index)) : null
 
   tags = merge(
     {
@@ -370,6 +370,7 @@ resource "aws_subnet" "redshift" {
   vpc_id            = local.vpc_id
   cidr_block        = var.redshift_subnets[count.index]
   availability_zone = element(var.azs, count.index)
+  ipv6_cidr_block   = var.enable_ipv6 && length(var.redshift_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(concat(var.redshift_subnet_ipv6_prefixes, list("0")), count.index)) : null
 
   tags = merge(
     {
@@ -409,6 +410,7 @@ resource "aws_subnet" "elasticache" {
   vpc_id            = local.vpc_id
   cidr_block        = var.elasticache_subnets[count.index]
   availability_zone = element(var.azs, count.index)
+  ipv6_cidr_block   = var.enable_ipv6 && length(var.elasticache_subnet_ipv6_prefixes) > 0 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, element(concat(var.elasticache_subnet_ipv6_prefixes, list("0")), count.index)) : null
 
   tags = merge(
     {
@@ -940,6 +942,90 @@ resource "aws_vpc_endpoint_route_table_association" "public_dynamodb" {
 }
 
 
+#############################
+# VPC Endpoint for Codebuild
+#############################
+data "aws_vpc_endpoint_service" "codebuild" {
+  count = var.create_vpc && var.enable_codebuild_endpoint ? 1 : 0
+
+  service = "codebuild"
+}
+
+resource "aws_vpc_endpoint" "codebuild" {
+  count = var.create_vpc && var.enable_codebuild_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.codebuild[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.codebuild_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.codebuild_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.codebuild_endpoint_private_dns_enabled
+}
+
+###############################
+# VPC Endpoint for Code Commit
+###############################
+data "aws_vpc_endpoint_service" "codecommit" {
+  count = var.create_vpc && var.enable_codecommit_endpoint ? 1 : 0
+
+  service = "codecommit"
+}
+
+resource "aws_vpc_endpoint" "codecommit" {
+  count = var.create_vpc && var.enable_codecommit_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.codecommit[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.codecommit_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.codecommit_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.codecommit_endpoint_private_dns_enabled
+}
+
+###################################
+# VPC Endpoint for Git Code Commit
+###################################
+data "aws_vpc_endpoint_service" "git_codecommit" {
+  count = var.create_vpc && var.enable_git_codecommit_endpoint ? 1 : 0
+
+  service = "git-codecommit"
+}
+
+resource "aws_vpc_endpoint" "git_codecommit" {
+  count = var.create_vpc && var.enable_git_codecommit_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.git_codecommit[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.git_codecommit_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.git_codecommit_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.git_codecommit_endpoint_private_dns_enabled
+}
+
+##########################
+# VPC Endpoint for Config
+##########################
+data "aws_vpc_endpoint_service" "config" {
+  count = var.create_vpc && var.enable_config_endpoint ? 1 : 0
+
+  service = "config"
+}
+
+resource "aws_vpc_endpoint" "config" {
+  count = var.create_vpc && var.enable_config_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.config[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.config_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.config_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.config_endpoint_private_dns_enabled
+}
+
 #######################
 # VPC Endpoint for SQS
 #######################
@@ -959,6 +1045,27 @@ resource "aws_vpc_endpoint" "sqs" {
   security_group_ids  = var.sqs_endpoint_security_group_ids
   subnet_ids          = coalescelist(var.sqs_endpoint_subnet_ids, aws_subnet.private.*.id)
   private_dns_enabled = var.sqs_endpoint_private_dns_enabled
+}
+
+###################################
+# VPC Endpoint for Secrets Manager
+###################################
+data "aws_vpc_endpoint_service" "secretsmanager" {
+  count = var.create_vpc && var.enable_secretsmanager_endpoint ? 1 : 0
+
+  service = "secretsmanager"
+}
+
+resource "aws_vpc_endpoint" "secretsmanager" {
+  count = var.create_vpc && var.enable_secretsmanager_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.secretsmanager[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.secretsmanager_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.secretsmanager_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.secretsmanager_endpoint_private_dns_enabled
 }
 
 #######################
@@ -1043,6 +1150,27 @@ resource "aws_vpc_endpoint" "ec2messages" {
   security_group_ids  = var.ec2messages_endpoint_security_group_ids
   subnet_ids          = coalescelist(var.ec2messages_endpoint_subnet_ids, aws_subnet.private.*.id)
   private_dns_enabled = var.ec2messages_endpoint_private_dns_enabled
+}
+
+###################################
+# VPC Endpoint for Transfer Server
+###################################
+data "aws_vpc_endpoint_service" "transferserver" {
+  count = var.create_vpc && var.enable_transferserver_endpoint ? 1 : 0
+
+  service = "transfer.server"
+}
+
+resource "aws_vpc_endpoint" "transferserver" {
+  count = var.create_vpc && var.enable_transferserver_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.transferserver[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.transferserver_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.transferserver_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.transferserver_endpoint_private_dns_enabled
 }
 
 ###########################
@@ -1324,6 +1452,50 @@ resource "aws_vpc_endpoint" "cloudtrail" {
   security_group_ids  = var.cloudtrail_endpoint_security_group_ids
   subnet_ids          = coalescelist(var.cloudtrail_endpoint_subnet_ids, aws_subnet.private.*.id)
   private_dns_enabled = var.cloudtrail_endpoint_private_dns_enabled
+}
+
+
+#######################
+# VPC Endpoint for Kinesis Streams
+#######################
+data "aws_vpc_endpoint_service" "kinesis_streams" {
+  count = var.create_vpc && var.enable_kinesis_streams_endpoint ? 1 : 0
+
+  service = "kinesis-streams"
+}
+
+resource "aws_vpc_endpoint" "kinesis_streams" {
+  count = var.create_vpc && var.enable_kinesis_streams_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.kinesis_streams[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.kinesis_streams_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.kinesis_streams_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.kinesis_streams_endpoint_private_dns_enabled
+}
+
+
+#######################
+# VPC Endpoint for Kinesis Firehose
+#######################
+data "aws_vpc_endpoint_service" "kinesis_firehose" {
+  count = var.create_vpc && var.enable_kinesis_firehose_endpoint ? 1 : 0
+
+  service = "kinesis-firehose"
+}
+
+resource "aws_vpc_endpoint" "kinesis_firehose" {
+  count = var.create_vpc && var.enable_kinesis_firehose_endpoint ? 1 : 0
+
+  vpc_id            = local.vpc_id
+  service_name      = data.aws_vpc_endpoint_service.kinesis_firehose[0].service_name
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids  = var.kinesis_firehose_endpoint_security_group_ids
+  subnet_ids          = coalescelist(var.kinesis_firehose_endpoint_subnet_ids, aws_subnet.private.*.id)
+  private_dns_enabled = var.kinesis_firehose_endpoint_private_dns_enabled
 }
 
 
