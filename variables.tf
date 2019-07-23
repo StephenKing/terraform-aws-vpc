@@ -20,6 +20,40 @@ variable "assign_generated_ipv6_cidr_block" {
   default     = false
 }
 
+variable "enable_ipv6" {
+  description = "Assigns IPv6 subnets and routes"
+  default     = false
+}
+
+variable "private_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  default     = []
+  type        = "list"
+}
+
+variable "public_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  default     = []
+  type        = "list"
+}
+
+variable "database_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  default     = []
+  type        = "list"
+}
+
+variable "intra_subnet_ipv6_prefixes" {
+  description = "Assigns IPv6 subnet id based on the Amazon provided /56 prefix base 10 integer (0-256). Must be of equal length to the corresponding IPv4 subnet list"
+  default     = []
+  type        = "list"
+}
+
+variable "assign_ipv6_address_on_creation" {
+  description = "Assign IPv6 address on subnet, must be disabled to change IPv6 CIDRs. This is the IPv6 equivalent of map_public_ip_on_launch"
+  default     = false
+}
+
 variable "secondary_cidr_blocks" {
   description = "List of secondary CIDR blocks to associate with the VPC to extend the IP Address pool"
   type        = list(string)
